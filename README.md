@@ -1,5 +1,7 @@
 # TruthHire (system)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20680914.svg)](https://doi.org/10.5281/zenodo.20680914)
+
 The deployable TruthHire system: an API-first employment-fraud screening service
 built around a deterministic, explainable **timeline-impossibility engine**.
 
