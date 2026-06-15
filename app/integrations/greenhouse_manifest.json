@@ -1,0 +1,10 @@
+{
+  "name": "TruthHire — Employment Fraud Intelligence",
+  "partner": "TruthHire",
+  "category": "Background & Verification",
+  "oauth": {"authorize_url": "https://app.truthhire.io/oauth/authorize",
+            "token_url": "https://app.truthhire.io/oauth/token",
+            "scopes": ["candidates.read", "candidates.write"]},
+  "webhooks": [{"event": "candidate_stage_change", "url": "https://api.truthhire.io/ats/greenhouse"}],
+  "surfaces": [{"type": "candidate_card_badge", "shows": "risk_level"}]
+}

@@ -1,0 +1,27 @@
+{
+  "title": "TruthHire: Employment-Fraud Screening System (Reference Implementation)",
+  "upload_type": "software",
+  "description": "Deployable, API-first employment-fraud screening system built around a deterministic, explainable timeline-impossibility engine with a granularity-aware overlap rule, plus a pluggable OSINT signal layer (offline by default, live-ready). Includes additive risk scoring with severity bands; a privacy-preserving shared fraud network (SHA-256 hashes only) with threshold cross-organization lookup and fraud-ring detection; an outcome-symmetric contribution-credit ledger; Stripe-ready billing and plans; ATS adapters; bulk CSV screening; a self-contained results dashboard; AI skills-consistency scoring; an audit/dispute/adverse-action governance layer; request-timing metrics and health probes; and real SQL persistence (SQLAlchemy + Alembic migrations, SQLite by default, Postgres-ready). Outputs are advisory and human-in-the-loop by design. Ships with a full pytest suite.",
+  "creators": [
+    {
+      "name": "Javvadi, Vijay",
+      "affiliation": "Independent Researcher"
+    }
+  ],
+  "keywords": [
+    "employment fraud",
+    "resume fraud",
+    "background screening",
+    "fraud detection",
+    "privacy-preserving data sharing",
+    "FastAPI",
+    "hiring",
+    "FCRA",
+    "GDPR",
+    "responsible AI"
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "version": "1.1.0",
+  "language": "eng"
+}

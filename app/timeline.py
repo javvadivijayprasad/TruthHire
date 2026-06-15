@@ -32,6 +32,11 @@ SEVERITY = {
 }
 # Overlap shorter than this many months is treated as a normal transition.
 OVERLAP_TOLERANCE_MONTHS = 3
+# When a contested date boundary is given at year granularity ("2019" with no
+# month), sub-year ordering is unknowable, so the overlap could be an artefact of
+# rounding. Widen the tolerance by this many months for such pairs to avoid
+# phantom overlaps on honest, year-granular resumes.
+YEAR_GRANULARITY_SLACK_MONTHS = 12
 # Allow this much slack before calling claimed-vs-summed an inflation.
 INFLATION_TOLERANCE_YEARS = 1.0
 
@@ -50,6 +55,18 @@ class Span:
     end_month: int
     employment_type: str = "full_time"
     label: str = ""
+    start_yearonly: bool = False  # date given at year granularity (e.g. "2019")
+    end_yearonly: bool = False
+
+
+def _is_year_only(value) -> bool:
+    """True if a date string carries only year granularity (no month)."""
+    if value is None:
+        return False
+    v = str(value).strip().lower()
+    if v in ("present", "current", "now", "ongoing"):
+        return False
+    return v.replace("/", "-").isdigit()
 
 
 def _parse_month(value: str, *, default_to_now: bool = False) -> Optional[int]:
@@ -95,7 +112,10 @@ def _spans(jobs) -> List[Span]:
             start, end = end, start
         etype = (getattr(j, "employment_type", None) if not isinstance(j, dict) else j.get("employment_type")) or "full_time"
         company = (getattr(j, "company", None) if not isinstance(j, dict) else j.get("company")) or ""
-        out.append(Span(start, end, etype, company))
+        raw_start = getattr(j, "start", None) if not isinstance(j, dict) else j.get("start")
+        raw_end = getattr(j, "end", None) if not isinstance(j, dict) else j.get("end")
+        out.append(Span(start, end, etype, company,
+                        _is_year_only(raw_start), _is_year_only(raw_end)))
     return out
 
 
@@ -165,7 +185,16 @@ def timeline_score(candidate) -> Tuple[int, List[FlagDC], List[str]]:
     overlap_count = 0
     for i in range(len(full)):
         for k in range(i + 1, len(full)):
-            if _overlap_months(full[i], full[k]) > OVERLAP_TOLERANCE_MONTHS:
+            a, b = full[i], full[k]
+            # the contested edge is the later start vs. the earlier end; if either
+            # bounding date is year-granular, the apparent overlap may be a
+            # rounding artefact, so widen the tolerance for this pair.
+            if a.start_month <= b.start_month:
+                contested_yo = b.start_yearonly or a.end_yearonly
+            else:
+                contested_yo = a.start_yearonly or b.end_yearonly
+            tol = OVERLAP_TOLERANCE_MONTHS + (YEAR_GRANULARITY_SLACK_MONTHS if contested_yo else 0)
+            if _overlap_months(a, b) > tol:
                 overlap_count += 1
     if overlap_count:
         add = WEIGHTS["EMPLOYMENT_OVERLAP"] * overlap_count

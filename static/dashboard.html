@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><title>TruthHire &mdash; Results Dashboard</title>
+<style>
+ body{font-family:system-ui,Arial,sans-serif;max-width:760px;margin:30px auto;padding:0 16px;color:#222}
+ h1{color:#1F3864} textarea{width:100%;height:150px;font-family:monospace;font-size:13px}
+ input,button{font-size:14px;padding:6px 10px} button{background:#2E75B6;color:#fff;border:0;border-radius:4px;cursor:pointer}
+ .badge{display:inline-block;padding:4px 12px;border-radius:14px;color:#fff;font-weight:bold}
+ .LOW{background:#2E8B57}.MEDIUM{background:#E0A030}.HIGH{background:#C0392B}.CRITICAL{background:#7B241C}
+ .flag{margin:4px 0;padding:6px 10px;background:#f4f4f4;border-left:4px solid #C0392B;border-radius:3px;font-size:13px}
+ .ok{border-left-color:#2E8B57}
+</style></head><body>
+<h1>TruthHire &mdash; Results Dashboard</h1>
+<p>API key: <input id="key" value="th_sandbox_demo_key" size="28"></p>
+<p>Candidate JSON:</p>
+<textarea id="payload">{"candidate":{"name":"John Smith","age":24,"total_claimed_years":15,
+"osint":{"company":{"exists":false},"network":{"reports":3}}}}</textarea><br><br>
+<button onclick="run()">Verify</button>
+<div id="out" style="margin-top:20px"></div>
+<script>
+async function run(){
+ const key=document.getElementById('key').value;
+ let body; try{body=JSON.parse(document.getElementById('payload').value);}catch(e){alert('Invalid JSON');return;}
+ const r=await fetch('/verify',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
+ const d=await r.json(); const o=document.getElementById('out');
+ if(!r.ok){o.innerHTML='<b style="color:#C0392B">'+(d.message||JSON.stringify(d))+'</b>';return;}
+ const res=d.result;
+ let h='<h2>'+(d.candidate.name||'')+' &nbsp; <span class="badge '+res.risk_level+'">'+res.risk_level+' &middot; '+res.risk_score+'</span></h2>';
+ h+='<p><i>'+res.recommendation+'</i></p>';
+ h+='<h3>Flags</h3>'; if(!res.flags.length)h+='<div class="flag ok">No flags — clean</div>';
+ res.flags.forEach(f=>h+='<div class="flag">['+f.severity+'] <b>'+f.code+'</b> (+'+f.weight+', '+f.layer+')<br>'+f.message+'</div>');
+ h+='<h3>Passed checks</h3><div style="font-size:13px;color:#555">'+res.passed_checks.join(', ')+'</div>';
+ h+='<p style="color:#888;font-size:12px">check_id: '+d.check_id+'</p>';
+ o.innerHTML=h;
+}
+</script></body></html>

@@ -24,6 +24,8 @@ class Candidate(BaseModel):
     name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+    github_username: Optional[str] = None
+    linkedin_url: Optional[str] = None
     date_of_birth: Optional[str] = Field(None, description="YYYY-MM-DD")
     age: Optional[int] = Field(None, ge=14, le=100)
     graduation_year: Optional[int] = Field(None, ge=1950, le=2100)
@@ -32,12 +34,15 @@ class Candidate(BaseModel):
     )
     jobs: List[Job] = Field(default_factory=list)
     cv_text: Optional[str] = None
+    osint: Optional[dict] = Field(default=None, description="Provider data slices for offline/advisory signals")
 
 
 class Options(BaseModel):
     depth: Literal["express", "standard", "deep"] = "standard"
-    layers: List[str] = Field(default_factory=lambda: ["timeline"])
+    layers: List[str] = Field(default_factory=lambda: ["timeline", "digital", "company", "network"])
     reference_id: Optional[str] = None
+    webhook_url: Optional[str] = None
+    consent: bool = False
 
 
 class VerifyRequest(BaseModel):
@@ -50,6 +55,7 @@ class Flag(BaseModel):
     severity: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
     message: str
     weight: int
+    layer: Optional[str] = None
 
 
 class LayerScores(BaseModel):
@@ -66,6 +72,7 @@ class VerifyResult(BaseModel):
     flags: List[Flag]
     passed_checks: List[str]
     layer_scores: LayerScores
+    adverse_action: Optional[dict] = None
 
 
 class VerifyResponse(BaseModel):
@@ -76,3 +83,61 @@ class VerifyResponse(BaseModel):
     candidate: dict
     result: VerifyResult
     verified_at: str
+
+
+class ProfileContribution(BaseModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    name: Optional[str] = None
+    outcome: Literal["fraud_confirmed", "legitimate", "inconclusive", "partial", "fraud_ring"] = "inconclusive"
+    duplicate: bool = False
+
+
+class ContributeRequest(BaseModel):
+    profiles: List[ProfileContribution] = Field(default_factory=list)
+
+
+class FlagReport(BaseModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    name: Optional[str] = None
+    outcome: Literal["fraud_confirmed", "legitimate", "inconclusive"] = "fraud_confirmed"
+
+
+class FlagLookup(BaseModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    threshold: int = 1
+
+
+class BulkRequest(BaseModel):
+    csv: str
+    layers: Optional[List[str]] = None
+    as_csv: bool = False
+
+
+class SubscribeRequest(BaseModel):
+    plan: Literal["free", "starter", "growth", "scale", "enterprise"] = "starter"
+
+
+class KeyRequest(BaseModel):
+    label: str
+
+
+class SkillsQuestionsRequest(BaseModel):
+    total_claimed_years: Optional[float] = None
+    domain: Optional[str] = None
+    jobs: List[dict] = Field(default_factory=list)
+    n: int = 3
+
+
+class SkillsAssessRequest(BaseModel):
+    total_claimed_years: Optional[float] = None
+    domain: Optional[str] = None
+    jobs: List[dict] = Field(default_factory=list)
+    answers: List[str] = Field(default_factory=list)
+
+
+class DisputeRequest(BaseModel):
+    check_id: str
+    reason: str

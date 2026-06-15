@@ -7,3 +7,10 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# local database
+*.db
+truthhire.db
+
+# stray leftover (superseded duplicates; safe to delete locally)
+_stray_app_duplicates/
